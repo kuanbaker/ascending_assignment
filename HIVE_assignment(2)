@@ -1,0 +1,90 @@
+## Q1_1: Find top 5 states with most banks. The result must show the state name and number of banks in descending order.
+
+SELECT 
+  st,
+  count(*) as num_banks
+FROM
+  banklist
+GROUP BY
+  st
+ORDER BY
+  num_banks DESC
+
+## Q1_2: Found how many banks were closed each year. The result must show the year and the number of banks closed on that year, order by year.
+SELECT 
+  SUBSTR(year, -2, 2) as yr,
+  count(*) as num_closed
+FROM
+  banklist
+GROUP BY 
+  yr
+ORDER BY 
+  num_closed DESC
+  
+  
+## Q2: https://data.cityofchicago.org/Public-Safety/Crimes-2020/qzdf-xmn8 Check hive database named “chicago”, 
+## there is one table named: crime_parquet: include data from 2001-present
+
+## Q2_1: In your own database, create a partitioned table(partitionedby year)to store data, store in parquet format.Name the table “crime_parquet_16_20”;
+CREATE TABLE IF NOT EXISTS kuan_db.crime_parquet_16_20(
+  ID int,
+  case_number int,
+  'date' bigint,
+  block string,
+  IUCR string,
+  primary_type string,
+  description string,
+  location_description string,
+  Arrest boolean,
+  domestic boolean,
+  beat string,
+  district int,
+  ward string,
+  community_area string,
+  FBI_code int,
+  x_coordinate string,
+  Y_Coordinate string,
+  updated_on string,
+  latitude float,
+  longitude float,
+  location string
+)
+PARTITIONED BY (yr int)
+STORED AS parquetfile;
+
+
+#Q2_2:Import 2016 to 2020 data into the partitioned table from table chicago.crime_parquet.
+
+SET hive.exec.dynamic.partition = true;
+SET hive.exec.dynamic.partition.mode = nonstrict;
+
+INSERT INTO kuan_db.crime_parquet_16_20 PARTITION(yr) 
+SELECT
+  ID,
+  case_number,
+  'date',
+  block,
+  IUCR,
+  primary_type,
+  description,
+  location_description,
+  Arrest,
+  domestic,
+  beat,
+  district,
+  ward,
+  community_area,
+  FBI_code,
+  x_coordinate,
+  Y_Coordinate,
+  updated_on,
+  latitude,
+  longitude,
+  location,
+  yr
+FROM
+  crime_parquet
+WHERE 
+  yr BETWEEN "2016" AND "2020";  
+  
+  
