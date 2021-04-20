@@ -28,7 +28,7 @@ WITH SERDEPROPERTIES(
  "escapeChar" = "\\"
 )
 STORED AS textfile
-TABLEPROPERTIES("skip.header.line.count"="1");
+TBLPROPERTIES("skip.header.line.count"="1");
 
 LOAD DATA INPATH "/user/kuanbaker/banklist" INTO TABLE kuan_db.banklist;
 
@@ -52,7 +52,7 @@ WITH SERDEPROPERTIES(
 )
 STORED AS textfile
 LOCATION "/user/kuanbaker/banklist"
-TABLEPROPERTIES("skip.header.line.count" = "1");
+TBLPROPERTIES("skip.header.line.count" = "1");
 
 
 ## Q(5): Create a Hive table using AVRO file where you get from the SQOOP homework.
