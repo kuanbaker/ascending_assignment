@@ -1,0 +1,80 @@
+## Q1:In hdfs, create a folder named retail_db under your home folder (/user/<your-id>), and 3 sub-folder named parquet, avro and text
+
+hdfs dfs -mkdir -P retail_db/parquet
+hdfs dfs -mkdir retail_db/avro
+hdfs dfs -mkdir retail_db/text
+
+
+## Q2: Import all tables from MariaDBretail_db to hdfs, in parquet format, save in hdfs folder  /user/<your_id>/retail_db/parquet, 
+## each table is stored in a sub-folder, for example, products table should be imported to /user/<your-id>/retail_db/parquet/products/
+
+sqoop import-all-tables \
+-m 1 \
+--connect jdbc:mysql://database.ascendingdc.com:3306/retail_db \
+--username=12345 \
+--password=12345 \
+--compression-codec=snappy
+--as-parquetfile
+--warehouse-dir /user/kuanbaker/retail_db/parquet
+
+
+## Q3: Import all tables from MariaDB retail_db to hdfs, in text format, use ‘#’ as field delimiter.  
+## Save in hdfs folder  /user/<your_id>/retail_db/text, each table is stored in a sub-folder, for example, 
+## products table should be imported to /user/<your_id>/retail_db/text/products/
+
+sqoop import-all-talbes \
+-m 1 \
+--connect jdbc:mysql://database.ascendingdc.com:3306/retail_db \
+--username=12345 \
+--password=12345 \
+--fields-terminated-by "#" \
+--warehouse-dir /user/kuanbaker/retail_db/text
+
+
+## Q4: Importtable order_items to hdfs, in avro format, save in hdfs folder /user/<your_id>/retail_db/avro
+
+sqoop import \
+-m 1 \
+--connect jdbc:mysql://database.ascendingdc.com:3306/retail_db \
+--username=12345
+--password=12345
+--table order_items
+--compression-codec=snappy
+--as-avrodatafile
+--target-dir /user/kuanbaker/retail_db/avro
+
+
+## Q5: In edge node, in your home folder, Create a folder named “order_items_files” in Linux file system.
+
+mkdir /order_items_files
+
+
+## Q6: Copy order_items table files generated in step 3, 4, 5 from HDFS to Linux file system, 
+## name them as order_items.parquet, order_items.avro, order_items.txt 
+
+hdfs dfs -get retail_db/parquet/*.parquet /order_items_files/order_items.parquet
+hdfs dfs -get retail_db/avro/*.avro /order_items_files/order_items.avro
+hdfs dfs -get retail_db/text/part-m-00000 /order_items_files/order_items.txt
+
+
+## Q7: Use parquet-tools toshow following information from order_items.parquet schema rowcount first 5 records metadata
+
+cd retail_db/order_items_files
+parquet-tools schema order_items.parquet
+parquet-tools meta order_items.parquet
+parquet-tools rowcount order_items.parquet
+parquet-tools head -n 5 order_items.parquet
+
+
+## Q8:Examine text file order_items.txt, and calculate rowcount, compare it with the rowcount in step (8)
+
+cat order_items.txt
+ca order_items | wc -l
+
+## Q9: Use avro-tools to show following information from order_items.avro 
+## schema metadata convert to json files rowcount
+
+avro-tools getschema order_items.avro
+avro-tools getmeta order_items.avro
+avro-tools tojson order_items.avro > order_items.json
+avro-tools tojson order_items.avro | wc -l
